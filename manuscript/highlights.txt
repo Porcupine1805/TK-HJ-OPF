@@ -1,0 +1,5 @@
+- Exact global top-K OPF mining without a minimum-support threshold.
+- Endpoint-shift w_{j+d}=e^{kd} w_j yields DUB and PDUB.
+- An immediate-child PUB cannot prune a whole pair lineage.
+- Hash-indexed fusion with immutable occurrence lists is exact.
+- On OPF DB1-DB8, TK-HJ is 19.63x faster than exhaustive hash-join (geomean).

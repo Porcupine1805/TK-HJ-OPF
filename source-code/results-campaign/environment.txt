@@ -1,0 +1,9 @@
+java.version=25.0.3
+java.vendor=Eclipse Adoptium
+os.name=Windows 11
+os.arch=amd64
+availableProcessors=8
+maxMemoryMB=8192
+warmups=5
+repeats=10
+protocol=in-process; System.nanoTime around mine(); canonical untimed

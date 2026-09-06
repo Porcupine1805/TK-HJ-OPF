@@ -1,0 +1,8 @@
+{
+  "host": "Windows + OpenJDK 25, javac --release 21",
+  "checks": [
+    {"name": "SelfTest", "status": "PASS"},
+    {"name": "RandomizedSelfTest", "status": "PASS", "cases": 2400},
+    {"name": "running_example_top5", "status": "PASS"}
+  ]
+}

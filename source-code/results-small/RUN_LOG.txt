@@ -1,0 +1,7 @@
+TK-HJ-OPF small tests (this host)
+
+javac --release 21 / Temurin 25
+
+- SelfTest: PASS (OPF running example vs brute force)
+- RandomizedSelfTest: PASS, 2400 exact comparisons
+- Main --mode tk on example_opf.txt: top-5 matches Table 2 of the manuscript

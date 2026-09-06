@@ -1,0 +1,11 @@
+Locked Java campaign — 2026-09-06
+Host: GILDEROY, Intel Core i5-8250U @ 1.60GHz (4 cores / 8 threads), 32 GB RAM
+OS: Windows 11 Home, 10.0.26200, amd64
+Java: Eclipse Temurin 25.0.3, javac --release 21, -Xms2g -Xmx8g
+Timer: System.nanoTime around mine() only; one JVM for the whole campaign
+Central: 5 warmups + 10 measured (phase=central in timing.csv)
+Sensitivity phases (K_sens, L_sens, k_sens): 3 warmups + 5 measured, SAME JVM after central
+Canonical: untimed separate process, TSV canonical.tsv; 5 modes identical SHA on 8/8 datasets
+Datasets: official OPF-Miner DB1–DB8 SHA-256 as in DATASETS.md (files not in git)
+Public extra: SILSO daily SSN n=72967 (this host, public_silso.csv)
+This repository is TK-HJ-OPF only (no ESTK/OPST binary).
