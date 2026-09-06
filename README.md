@@ -4,8 +4,7 @@ Exact, threshold-free **top-K order-preserving pattern mining** under exponentia
 forgetting, via a hash-indexed prefix–suffix join and descendant bounds
 (DUB / PDUB).
 
-Manuscript (Elsevier `elsarticle`, *Information Sciences* layout):
-`manuscript/main.tex`. Overleaf: pdfLaTeX, main document `main.tex`.
+This repository contains **source code and campaign CSVs only** (no manuscript).
 
 ## Build and test
 
