@@ -1,9 +1,9 @@
-# TK-HJ-OPF Java 21
+# Source tree
 
-Proposed method of this repository: **TK-HJ-OPF** (strict fusion, DUB/PDUB).
+- `java-tk-hj/` — Java 21 implementation, tests, and campaign runners
+- `data/` — running example and public converted series (SILSO, FRED)
+- `results-campaign/` — locked CSVs matching the manuscript (`PROTOCOL.txt`)
+- `results-small/` — self-test log on the OPF running example
 
-```powershell
-cd java-tk-hj
-powershell -File scripts/build.ps1
-powershell -File scripts/run_tests.ps1
-```
+Build: `java-tk-hj/scripts/build.ps1` (or `build.sh`).
+Reproduce: `java-tk-hj/docs/REPRODUCE.md`.

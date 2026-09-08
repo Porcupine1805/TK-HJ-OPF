@@ -144,10 +144,11 @@ public final class CampaignRunner {
     static MiningResult run(String m, double[] t, double k, int K, int minLen, int max) {
         return switch (m) {
             case "hjtopk" -> new ExhaustiveHJTopKMiner().mine(t, k, K, minLen, max);
-            case "tk" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, true, true);
-            case "tk-no-pdub" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, false, true);
-            case "tk-no-dub" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, true, false);
-            case "tk-no-bounds" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, false, false);
+            case "tk" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, true, true, true);
+            case "tk-naive" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, true, true, false);
+            case "tk-no-pdub" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, false, true, true);
+            case "tk-no-dub" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, true, false, true);
+            case "tk-no-bounds" -> new TKHJOPFMiner().mine(t, k, K, minLen, max, false, false, true);
             default -> throw new IllegalArgumentException(m);
         };
     }

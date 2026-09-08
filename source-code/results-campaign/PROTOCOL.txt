@@ -1,11 +1,28 @@
-Locked Java campaign — 2026-09-06
-Host: GILDEROY, Intel Core i5-8250U @ 1.60GHz (4 cores / 8 threads), 32 GB RAM
+Locked campaigns matching the Information Sciences manuscript
+==============================================================
+
+Host: GILDEROY, Intel Core i5-8250U @ 1.60 GHz (4 cores / 8 threads), 32 GB RAM
 OS: Windows 11 Home, 10.0.26200, amd64
 Java: Eclipse Temurin 25.0.3, javac --release 21, -Xms2g -Xmx8g
-Timer: System.nanoTime around mine() only; one JVM for the whole campaign
-Central: 5 warmups + 10 measured (phase=central in timing.csv)
-Sensitivity phases (K_sens, L_sens, k_sens): 3 warmups + 5 measured, SAME JVM after central
-Canonical: untimed separate process, TSV canonical.tsv; 5 modes identical SHA on 8/8 datasets
-Datasets: official OPF-Miner DB1–DB8 SHA-256 as in DATASETS.md (files not in git)
-Public extra: SILSO daily SSN n=72967 (this host, public_silso.csv)
-This repository is TK-HJ-OPF only (no ESTK/OPST binary).
+Timer: System.nanoTime around mine() only
+
+1) Official DB1–DB8 (6 September 2026) — manuscript Tables central / pairs / K-sensitivity
+   timing.csv, canonical.tsv, environment.txt, SUMMARY.md
+   Central: 5 warmups + 10 measured, one JVM
+   Sensitivity (K, L, k): 3 warmups + 5 measured, same JVM after central
+   Canonical SHA-256 of the top-50 set identical across five exact modes on 8/8 files
+   Geomean HJ / full TK = 19.63×
+
+2) Public series (same host, five-mode protocol) — manuscript Table public
+   Numbers are those reported in the manuscript (SILSO, NASDAQCOM, FRED S&P 500).
+   Converted series: source-code/data/public/*.txt (official OPF files are not redistributed).
+
+3) PDUB profile ablation (8 September 2026) — manuscript Table profile
+   profile_ablation.csv, profile_ablation_canonical.tsv, profile_ablation_SUMMARY.md
+   Modes: tk-no-pdub, tk-naive (breakpoint PDUB), tk (depth-UB profiles)
+   Canonical SHA and search-tree counters identical for naive vs profile on 11/11 series
+   Geomean naive/profile = 1.16×; DUB-only/profile = 1.17×
+
+Do not mix these files with results from another host or date.
+Official OPF-Miner DB1–DB8 .txt files are not in this repository; SHA-256 is in DATASETS.md.
+Set TKHJ_OFFICIAL_DIR to a local copy of those eight files before rerunning CampaignRunner.

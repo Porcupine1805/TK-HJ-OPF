@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-"""Figures for the TK-HJ-OPF manuscript from locked timing.csv."""
+"""Figures for the TK-HJ-OPF manuscript from locked campaign CSVs."""
 from __future__ import annotations
 
+import argparse
 import csv
+import math
 import statistics
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
-CSV = ROOT / "source-code" / "results-campaign" / "timing.csv"
-FIG = ROOT / "manuscript" / "figures"
-FIG.mkdir(parents=True, exist_ok=True)
+DEFAULT_CSV = ROOT / "source-code" / "results-campaign" / "timing.csv"
+DEFAULT_FIG = ROOT / "manuscript" / "figures"
+DEFAULT_PUBLIC = ROOT / "source-code" / "results-campaign" / "full_paper1.csv"
+DEFAULT_RSS = ROOT / "source-code" / "results-campaign" / "full_paper1_rss.csv"
+DEFAULT_SUBMIT = ROOT / "submit" / "figures"
 
 LABEL = {
     "hjtopk": "HJ exhaustive",
@@ -34,17 +40,37 @@ SHORT = {
 }
 MODE_ORDER = ["hjtopk", "tk-no-bounds", "tk-no-dub", "tk-no-pdub", "tk"]
 DS_ORDER = list(SHORT)
+PUBLIC_SHORT = {
+    "SILSO_sunspots.txt": "SILSO",
+    "NASDAQCOM.txt": "NASDAQCOM",
+    "FRED_SP500.txt": "S&P 500 (FRED)",
+}
+PUBLIC_ORDER = list(PUBLIC_SHORT)
+RSS_SHORT = {**SHORT, **PUBLIC_SHORT}
+RSS_ORDER = list(SHORT) + list(PUBLIC_SHORT)
 
 
-def load():
+def geomean(xs: list[float]) -> float:
+    return math.exp(sum(math.log(x) for x in xs) / len(xs))
+
+
+def load_csv(path: Path) -> list[dict]:
     rows = []
-    with CSV.open(encoding="utf-8") as f:
+    with path.open(encoding="utf-8") as f:
         for r in csv.DictReader(f):
             r["runtime_ms"] = float(r["runtime_ms"])
-            r["topk"] = int(r["topk"])
-            r["maxlen"] = int(r["maxlen"])
-            r["k"] = float(r["k"])
-            r["peak_heap_mb"] = float(r["peak_heap_mb"])
+            if "topk" in r:
+                r["topk"] = int(r["topk"])
+            if "maxlen" in r:
+                r["maxlen"] = int(r["maxlen"])
+            if "k" in r:
+                r["k"] = float(r["k"])
+            if "n" in r:
+                r["n"] = int(r["n"])
+            if "peak_heap_mb" in r:
+                r["peak_heap_mb"] = float(r["peak_heap_mb"])
+            if "aligned_checks" in r:
+                r["aligned_checks"] = int(r["aligned_checks"])
             rows.append(r)
     return rows
 
@@ -52,7 +78,7 @@ def load():
 def median_map(rows, phase, key=("dataset", "mode")):
     g = defaultdict(list)
     for r in rows:
-        if r["phase"] != phase:
+        if r.get("phase") != phase:
             continue
         k = tuple(r[x] for x in key)
         g[k].append(r["runtime_ms"])
@@ -70,7 +96,14 @@ def style():
     })
 
 
-def fig_runtime(rows):
+def save(fig, name: str, dests: list[Path]) -> None:
+    for dest in dests:
+        dest.mkdir(parents=True, exist_ok=True)
+        fig.savefig(dest / f"{name}.png")
+        fig.savefig(dest / f"{name}.pdf")
+
+
+def fig_runtime(rows, dests):
     med = median_map(rows, "central")
     x = np.arange(len(DS_ORDER))
     width = 0.16
@@ -85,18 +118,18 @@ def fig_runtime(rows):
     ax.set_title(r"Official DB1–DB8 at $K=50$, $\ell_{\max}=12$, $k=1/n$")
     ax.legend(ncols=3, fontsize=8)
     fig.tight_layout()
-    fig.savefig(FIG / "official_runtime.png")
-    fig.savefig(FIG / "official_runtime.pdf")
+    save(fig, "official_runtime", dests)
     plt.close(fig)
 
 
-def fig_speedup(rows):
+def fig_speedup(rows, dests):
     med = median_map(rows, "central")
     names = [SHORT[d] for d in DS_ORDER]
     sp = [med[(d, "hjtopk")] / med[(d, "tk")] for d in DS_ORDER]
+    gm = geomean(sp)
     fig, ax = plt.subplots(figsize=(7.2, 3.8))
     bars = ax.bar(names, sp, color="#1f4e79")
-    ax.axhline(19.63, color="#c0392b", ls="--", lw=1, label="geomean 19.63×")
+    ax.axhline(gm, color="#c0392b", ls="--", lw=1, label=f"geomean {gm:.2f}×")
     ax.set_ylabel("Speedup HJ / full TK-HJ")
     ax.set_title("Per-dataset speedup at the central configuration")
     ax.legend()
@@ -105,12 +138,12 @@ def fig_speedup(rows):
     for b, v in zip(bars, sp):
         ax.text(b.get_x() + b.get_width() / 2, v * 1.02, f"{v:.1f}×", ha="center", va="bottom", fontsize=7)
     fig.tight_layout()
-    fig.savefig(FIG / "official_speedup.png")
-    fig.savefig(FIG / "official_speedup.pdf")
+    save(fig, "official_speedup", dests)
     plt.close(fig)
+    return gm, sp
 
 
-def fig_k_sens(rows):
+def fig_k_sens(rows, dests):
     g = defaultdict(list)
     for r in rows:
         if r["phase"] != "K_sens":
@@ -132,12 +165,76 @@ def fig_k_sens(rows):
     axes[2].legend(fontsize=7)
     fig.suptitle(r"$K$-sensitivity at $\ell_{\max}=12$", y=1.02)
     fig.tight_layout()
-    fig.savefig(FIG / "official_K_sensitivity.png")
-    fig.savefig(FIG / "official_K_sensitivity.pdf")
+    save(fig, "official_K_sensitivity", dests)
     plt.close(fig)
 
 
-def fig_heap(rows):
+def fig_l_sens(rows, dests):
+    g = defaultdict(list)
+    for r in rows:
+        if r["phase"] != "L_sens":
+            continue
+        g[(r["mode"], r["maxlen"])].append(r["runtime_ms"])
+    if not g:
+        return
+    med = {k: statistics.median(v) for k, v in g.items()}
+    Ls = [8, 12, 16]
+    fig, ax = plt.subplots(figsize=(6.2, 3.6))
+    for mode in ["hjtopk", "tk-no-pdub", "tk"]:
+        ys = [med[(mode, L)] for L in Ls]
+        ax.plot(Ls, ys, marker="o", label=LABEL[mode])
+    ax.set_yscale("log")
+    ax.set_xticks(Ls)
+    ax.set_xlabel(r"$\ell_{\max}$")
+    ax.set_ylabel("Median runtime (ms)")
+    ax.set_title(r"Amazon length sensitivity at $K=50$")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    save(fig, "official_L_sensitivity", dests)
+    plt.close(fig)
+
+
+def fig_kforget_sens(rows, dests):
+    g = defaultdict(list)
+    n_of = {}
+    for r in rows:
+        if r["phase"] != "k_sens":
+            continue
+        n_of[r["dataset"]] = r["n"]
+        factor = round(r["k"] * r["n"], 6)
+        g[(r["dataset"], r["mode"], factor)].append(r["runtime_ms"])
+    if not g:
+        return
+    med = {k: statistics.median(v) for k, v in g.items()}
+    factors = [0.25, 0.5, 1.0, 2.0, 4.0]
+    dss = ["DB1_Amazon.txt", "DB8_GE_US.txt"]
+    fig, axes = plt.subplots(1, 2, figsize=(8.4, 3.5), sharey=True)
+    for ax, ds in zip(axes, dss):
+        for mode in ["hjtopk", "tk-no-pdub", "tk"]:
+            ys = []
+            for c in factors:
+                key = (ds, mode, round(c, 6))
+                if key in med:
+                    ys.append(med[key])
+                else:
+                    cands = [kk for (d, m, kk) in med if d == ds and m == mode]
+                    nearest = min(cands, key=lambda x: abs(x - c)) if cands else None
+                    ys.append(med[(ds, mode, nearest)] if nearest is not None else float("nan"))
+            ax.plot(factors, ys, marker="o", label=LABEL[mode])
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xticks(factors, [str(c) for c in factors])
+        ax.set_title(SHORT[ds])
+        ax.set_xlabel(r"$k\cdot n$")
+    axes[0].set_ylabel("Median runtime (ms)")
+    axes[1].legend(fontsize=7)
+    fig.suptitle(r"Forgetting-factor sensitivity at $K=50$, $\ell_{\max}=12$", y=1.02)
+    fig.tight_layout()
+    save(fig, "official_forget_sensitivity", dests)
+    plt.close(fig)
+
+
+def fig_heap(rows, dests):
     g = defaultdict(list)
     for r in rows:
         if r["phase"] != "central":
@@ -157,13 +254,37 @@ def fig_heap(rows):
     ax.set_title("In-process heap (not OS Peak RSS)")
     ax.legend()
     fig.tight_layout()
-    fig.savefig(FIG / "official_heap.png")
-    fig.savefig(FIG / "official_heap.pdf")
+    save(fig, "official_heap", dests)
     plt.close(fig)
 
 
-def fig_graphical_abstract():
-    fig, ax = plt.subplots(figsize=(13.84, 5.53), dpi=120)  # ~13.8cm x 5.5cm at 96dpi * ~1.4
+def fig_search_space(rows, dests):
+    g = defaultdict(list)
+    for r in rows:
+        if r["phase"] != "central":
+            continue
+        g[(r["dataset"], r["mode"])].append(r["aligned_checks"])
+    med = {k: statistics.median(v) for k, v in g.items()}
+    x = np.arange(len(DS_ORDER))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(8.4, 3.8))
+    hj = [med[(d, "hjtopk")] for d in DS_ORDER]
+    tk = [med[(d, "tk")] for d in DS_ORDER]
+    ax.bar(x - width / 2, hj, width, label="HJ exhaustive")
+    ax.bar(x + width / 2, tk, width, label="Full TK-HJ")
+    ax.set_yscale("log")
+    ax.set_xticks(x)
+    ax.set_xticklabels([SHORT[d] for d in DS_ORDER], rotation=20, ha="right")
+    ax.set_ylabel("Median aligned occurrence checks")
+    ax.set_title(r"Search-space reduction at $K=50$, $\ell_{\max}=12$")
+    ax.legend()
+    fig.tight_layout()
+    save(fig, "official_search_space", dests)
+    plt.close(fig)
+
+
+def fig_graphical_abstract(gm: float, dests):
+    fig, ax = plt.subplots(figsize=(13.84, 5.53), dpi=120)
     ax.set_xlim(0, 14)
     ax.set_ylim(0, 5.5)
     ax.axis("off")
@@ -201,25 +322,92 @@ def fig_graphical_abstract():
             r"Safe because $w_{j+d}=e^{kd}w_j$. PUB (direct child) cannot prune a lineage.",
             ha="center", fontsize=9)
     ax.text(7, 0.75,
-            "Locked Java campaign (2026-09-06): geomean 19.63× vs exhaustive hash-join on OPF DB1–DB8.",
+            f"Locked Java campaign: geomean {gm:.2f}× vs exhaustive hash-join on OPF DB1–DB8.",
             ha="center", fontsize=8.5, color="#1f4e79")
     fig.tight_layout(pad=0.3)
-    out = FIG / "graphical_abstract.png"
-    fig.savefig(out, dpi=120)
-    fig.savefig(FIG / "graphical_abstract.pdf")
+    save(fig, "graphical_abstract", dests)
     plt.close(fig)
-    print("GA", out, plt.imread(out).shape)
 
 
-def main():
+def fig_public(path: Path, dests):
+    if not path.exists():
+        return
+    rows = load_csv(path)
+    g = defaultdict(list)
+    for r in rows:
+        g[(r["dataset"], r["mode"])].append(r["runtime_ms"])
+    med = {k: statistics.median(v) for k, v in g.items()}
+    x = np.arange(len(PUBLIC_ORDER))
+    width = 0.16
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    for i, mode in enumerate(MODE_ORDER):
+        ys = [med[(ds, mode)] for ds in PUBLIC_ORDER]
+        ax.bar(x + (i - 2) * width, ys, width, label=LABEL[mode])
+    ax.set_yscale("log")
+    ax.set_xticks(x)
+    ax.set_xticklabels([PUBLIC_SHORT[d] for d in PUBLIC_ORDER])
+    ax.set_ylabel("Median runtime (ms)")
+    ax.set_title(r"Public series at $K=50$, $\ell_{\max}=12$, $k=1/n$")
+    ax.legend(ncols=2, fontsize=7)
+    fig.tight_layout()
+    save(fig, "public_runtime", dests)
+    plt.close(fig)
+
+
+def fig_rss(path: Path, dests):
+    if not path.exists():
+        return
+    by = {}
+    with path.open(encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r.get("oneshot_rows") in {"0", ""}:
+                continue
+            by[(r["dataset"], r["mode"])] = float(r["peak_working_set_mb"])
+    if not by:
+        return
+    order = [d for d in RSS_ORDER if (d, "hjtopk") in by and (d, "tk") in by]
+    x = np.arange(len(order))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(9.2, 3.8))
+    hj = [by[(d, "hjtopk")] for d in order]
+    tk = [by[(d, "tk")] for d in order]
+    ax.bar(x - width / 2, hj, width, label="HJ exhaustive")
+    ax.bar(x + width / 2, tk, width, label="Full TK-HJ")
+    ax.set_xticks(x)
+    ax.set_xticklabels([RSS_SHORT[d] for d in order], rotation=25, ha="right")
+    ax.set_ylabel("Peak Working Set (MB)")
+    ax.set_title(r"Fresh-JVM OS Peak WS ($-$Xmx8g, no $-$Xms)")
+    ax.legend()
+    fig.tight_layout()
+    save(fig, "official_rss", dests)
+    plt.close(fig)
+
+
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--timing", type=Path, default=DEFAULT_CSV)
+    p.add_argument("--public", type=Path, default=DEFAULT_PUBLIC)
+    p.add_argument("--rss", type=Path, default=DEFAULT_RSS)
+    p.add_argument("--fig-dir", type=Path, action="append", default=None)
+    return p.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    dests = args.fig_dir if args.fig_dir else [DEFAULT_FIG, DEFAULT_SUBMIT]
     style()
-    rows = load()
-    fig_runtime(rows)
-    fig_speedup(rows)
-    fig_k_sens(rows)
-    fig_heap(rows)
-    fig_graphical_abstract()
-    print("wrote", FIG)
+    rows = load_csv(args.timing)
+    fig_runtime(rows, dests)
+    gm, _sp = fig_speedup(rows, dests)
+    fig_k_sens(rows, dests)
+    fig_l_sens(rows, dests)
+    fig_kforget_sens(rows, dests)
+    fig_heap(rows, dests)
+    fig_search_space(rows, dests)
+    fig_graphical_abstract(gm, dests)
+    fig_public(args.public, dests)
+    fig_rss(args.rss, dests)
+    print("wrote", [str(d) for d in dests], "geomean", f"{gm:.4f}")
 
 
 if __name__ == "__main__":

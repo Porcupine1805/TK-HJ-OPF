@@ -1,10 +1,10 @@
 # TK-HJ-OPF
 
 Exact, threshold-free **top-K order-preserving pattern mining** under exponential
-forgetting, via a hash-indexed prefix–suffix join and descendant bounds
-(DUB / PDUB).
+forgetting (TK-OPF), via a hash-indexed prefix–suffix join, descendant bounds
+(DUB / PDUB), and depth-UB profiles.
 
-This repository contains **source code and campaign CSVs only** (no manuscript).
+This repository is **source code and locked campaign CSVs** (no manuscript PDF).
 
 ## Build and test
 
@@ -21,22 +21,30 @@ Self-test expected top-5 on the OPF running example
 `t = (15,32,29,27,34,33,25,20,28,23)`, `k=0.1`, `K=5`:
 `(2,1)`, `(1,3,2)`, `(3,2,1)`, `(1,2)`, `(2,1,3)`.
 
-## Locked campaign (2026-09-06)
-
-Host: Intel Core i5-8250U, Windows 11, Temurin 25, `-Xms2g -Xmx8g`.
-Central grid `K=50`, `ℓ_max=12`, `k=1/n`: geometric-mean speedup of full
-`tk` over exhaustive `hjtopk` is **19.63×** on official OPF DB1–DB8.
-Raw files: `source-code/results-campaign/timing.csv`, `canonical.tsv`.
-
-Do **not** mix these medians with an earlier ARM64 laptop campaign.
-
-Official DB1–DB8 `.txt` files are **not** in this repository (upstream
-license unclear). SHA-256: `DATASETS.md`.
-
 ## Modes
 
-`hjtopk`, `tk`, `tk-no-pdub`, `tk-no-dub`, `tk-no-bounds`.
-Do not use threshold modes `baseline` / `hj` in TK-OPF claims.
+| Mode | Meaning |
+|---|---|
+| `hjtopk` | exhaustive hash-join top-K, no search pruning |
+| `tk-no-bounds` | heap + join, neither bound |
+| `tk-no-dub` | PDUB only |
+| `tk-no-pdub` | DUB only |
+| `tk-naive` | PDUB + DUB, breakpoint oracles |
+| `tk` | PDUB + DUB, **depth-UB profiles** (default) |
+
+Do not use threshold modes `baseline` / `hj` in TK-OPF claims (forgetting support is not anti-monotone).
+
+## Locked campaign (manuscript)
+
+Host: Intel Core i5-8250U, Windows 11, Temurin 25, `-Xms2g -Xmx8g`.
+Central cell `K=50`, `ℓ_max=12`, `k=1/n`.
+
+- Official OPF DB1–DB8: geomean **19.63×** (`hjtopk` / `tk`) — `source-code/results-campaign/timing.csv`
+- Depth-UB profile ablation: geomean **1.16×** (naive PDUB / profile) — `profile_ablation.csv`
+
+See `source-code/results-campaign/PROTOCOL.txt` and `source-code/java-tk-hj/docs/REPRODUCE.md`.
+
+Official DB1–DB8 `.txt` files are **not** redistributed. SHA-256: `DATASETS.md`.
 
 ## License
 

@@ -221,6 +221,14 @@ public final class TKHJOPF {
         return out;
     }
 
+    /** Depth-UB profile: U[d]=UB_d for d=0..R, 1-based endpoints. */
+    double[] profile(Pattern p, int R) {
+        if (R < 0) R = 0;
+        double[] u = new double[R + 1];
+        for (int d = 0; d <= R; d++) u[d] = ub(p, d);
+        return u;
+    }
+
     double ub(Pattern p, int d) {
         if(d<0) return Double.POSITIVE_INFINITY;
         int cutoff=n-d;
@@ -235,13 +243,17 @@ public final class TKHJOPF {
         return lo;
     }
     double dub(Pattern p) {
-        int D=lmax-p.length(); double best=0;
-        for(int d=0;d<=D;d++) best=Math.max(best,ub(p,d));
+        int D=lmax-p.length();
+        double[] U=profile(p,D);
+        double best=0;
+        for(int d=0;d<=D;d++) best=Math.max(best,U[d]);
         return best;
     }
     double pdub(Pattern p,Pattern q,int D) {
+        double[] Up=profile(p,D+1);
+        double[] Uq=profile(q,D);
         double best=0;
-        for(int d=0;d<=D;d++) best=Math.max(best,Math.min(ub(p,d+1),ub(q,d)));
+        for(int d=0;d<=D;d++) best=Math.max(best,Math.min(Up[d+1],Uq[d]));
         return best;
     }
     static boolean safeLess(double bound,double theta) {

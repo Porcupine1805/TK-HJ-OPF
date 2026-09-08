@@ -5,3 +5,4 @@ cd "$ROOT"
 bash scripts/build.sh
 java -cp target/classes org.tkhjopf.app.SelfTest
 java -cp target/classes org.tkhjopf.app.RandomizedSelfTest
+java -cp target/classes org.tkhjopf.app.ProfileExactnessTest

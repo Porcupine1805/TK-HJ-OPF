@@ -1,5 +1,7 @@
 # Campaign summary (this host, not ver1 ARM64 numbers)
 
+Full remaining-experiment write-up: `full_paper1_SUMMARY.md` (public 5-mode, bootstrap CIs, Wilcoxon, RSS).
+
 ## Central K=50, L=12, k=1/n  (median ms)
 
 | dataset | n | hjtopk | tk-no-bounds | tk-no-pdub | tk-no-dub | tk | speedup_hj_over_tk | speedup_hj_over_dub |

@@ -18,12 +18,14 @@ Expected ordered result:
 
 ## Randomized property testing
 
-`RandomizedSelfTest` performs 2,400 deterministic exact comparisons against brute force over small tie-free series, varying `n`, `k`, `minLen`, and `K`. The current suite completes without mismatch.
+`RandomizedSelfTest` performs 2,400 deterministic exact comparisons against brute force over small tie-free series, varying `n`, `k`, `minLen`, and `K`. Each case also compares depth-UB profiles against naive breakpoint `DUB`/`PDUB` (same top-K and same prune/alignment counters).
 
-Run both tests with:
+`ProfileExactnessTest` checks numeric identity of the two oracles on the running example and identical search-tree counters.
+
+Run with:
 
 ```bash
 bash scripts/run_tests.sh
 ```
 
-These tests establish small-instance semantic consistency; they are not a substitute for the locked journal-scale performance campaign.
+These tests establish small-instance semantic consistency; they are not a substitute for the locked journal-scale performance campaign. The profile ablation CSV is `source-code/results-campaign/run-20260908-profile/profile_ablation.csv`.

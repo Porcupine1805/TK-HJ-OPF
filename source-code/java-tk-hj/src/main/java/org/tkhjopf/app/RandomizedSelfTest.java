@@ -17,9 +17,15 @@ public final class RandomizedSelfTest {
                         if(minLen>n) continue;
                         for(int K:new int[]{1,2,3,5}){
                             int kk=Math.min(K,1000000);
-                            MiningResult a=new TKHJOPFMiner().mine(t,k,kk,minLen,n);
+                            MiningResult a=new TKHJOPFMiner().mine(t,k,kk,minLen,n,true,true,true);
+                            MiningResult naive=new TKHJOPFMiner().mine(t,k,kk,minLen,n,true,true,false);
                             MiningResult b=new BruteForceMiner().topK(t,k,kk,minLen,n);
                             assertSame(a,b,n,trial,k,minLen,K);
+                            assertSame(a,naive,n,trial,k,minLen,K);
+                            if(a.metrics().pairDescendantPrunes!=naive.metrics().pairDescendantPrunes
+                                    || a.metrics().alignedOccurrenceChecks!=naive.metrics().alignedOccurrenceChecks
+                                    || a.metrics().branchBoundPrunes!=naive.metrics().branchBoundPrunes)
+                                fail("profile vs naive counters",n,trial,k,minLen,K,a,naive);
                             cases++;
                         }
                     }

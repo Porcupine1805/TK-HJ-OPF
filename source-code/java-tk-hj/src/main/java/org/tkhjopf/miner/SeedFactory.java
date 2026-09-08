@@ -4,9 +4,9 @@ import org.tkhjopf.core.*;
 import org.tkhjopf.model.PatternData;
 import java.util.*;
 
-final class SeedFactory {
+public final class SeedFactory {
     private SeedFactory() {}
-    static List<PatternData> length2(double[] t,double[] w){
+    public static List<PatternData> length2(double[] t,double[] w){
         ArrayList<Integer> up=new ArrayList<>(),down=new ArrayList<>();
         for(int j=1;j<t.length;j++){
             int c=Double.compare(t[j-1],t[j]);
