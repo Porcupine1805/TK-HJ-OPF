@@ -15,9 +15,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 CSV = ROOT / "source-code" / "results-campaign" / "run-20260908-profile" / "profile_ablation.csv"
 DESTS = [
-    ROOT / "source-code" / "results-campaign" / "run-20260908-profile" / "figures",
-    ROOT / "manuscript" / "figures",
-    ROOT / "submit" / "figures",
+    ROOT / "latex-submit" / "figures",
 ]
 SHORT = {
     "DB1_Amazon.txt": "Amazon",

@@ -4,7 +4,8 @@ Exact, threshold-free **top-K order-preserving pattern mining** under exponentia
 forgetting (TK-OPF), via a hash-indexed prefix–suffix join, descendant bounds
 (DUB / PDUB), and depth-UB profiles.
 
-This repository is **source code and locked campaign CSVs** (no manuscript PDF).
+This repository is **source code and locked campaign CSVs**.
+The Elsevier manuscript lives only locally in `latex-submit/` (not on GitHub).
 
 ## Build and test
 

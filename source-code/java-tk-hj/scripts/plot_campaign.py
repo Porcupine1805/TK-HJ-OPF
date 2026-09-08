@@ -16,10 +16,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_CSV = ROOT / "source-code" / "results-campaign" / "timing.csv"
-DEFAULT_FIG = ROOT / "manuscript" / "figures"
+DEFAULT_FIG = ROOT / "latex-submit" / "figures"
 DEFAULT_PUBLIC = ROOT / "source-code" / "results-campaign" / "full_paper1.csv"
 DEFAULT_RSS = ROOT / "source-code" / "results-campaign" / "full_paper1_rss.csv"
-DEFAULT_SUBMIT = ROOT / "submit" / "figures"
+DEFAULT_SUBMIT = ROOT / "latex-submit" / "figures"
 
 LABEL = {
     "hjtopk": "HJ exhaustive",

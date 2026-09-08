@@ -284,8 +284,8 @@ def main() -> int:
             JAVA_ROOT,
         )
         fig_run = OUT / "figures"
-        fig_ms = PAPER_ROOT / "manuscript" / "figures"
-        fig_sub = PAPER_ROOT / "submit" / "figures"
+        fig_ms = PAPER_ROOT / "latex-submit" / "figures"
+        fig_sub = PAPER_ROOT / "latex-submit" / "figures"
         run(
             "plot",
             [sys.executable, str(SCRIPTS / "plot_campaign.py"),
